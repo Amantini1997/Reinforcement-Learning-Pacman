@@ -102,8 +102,6 @@ class MDPAgent(Agent):
         # includes capsules
         self.food = []
 
-        name = "Pacman"
-
     # Gets run after an MDPAgent object is created and once there is
     # game state to access.
     def registerInitialState(self, state):

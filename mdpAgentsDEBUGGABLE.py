@@ -631,23 +631,42 @@ def getLocationUtility(startingLocation,
     return valueIterationMap[landingLocation]
 
 
-def getVisitbaleWidthAndHeight(state):
+def getVisitableWidthAndHeight(state):
     '''
-    Return a tuple (x, y) of the top-most right-most
-    location in the map
+    Return a tuple (x, y) where x and y are, respectively,
+    the width and the height of the map.
+
+    This method assumes that the world has a rectangular shape.
     '''
     topRightCorner = max(api.walls(state))
-
-    # the corners belong to the walls, so in a map 4 x 4
-    # the top right corner is (3, 3), but it's a wall, so the map is
-    # 2 x 2 from the agent perspective, so the width is 3 - 1
+    # Corners belong to the perimeter wall. As the program uses
+    # an array index notation to indicate the position of cells,
+    # in a 4 x 8 map the top-right corner is (3, 7).
+    # If (3, 7) is the top-right corner, the most right accessible
+    # cell is 3 - 1, and the top most accessible cell is 7 - 1 
     return (topRightCorner[0] - 1, topRightCorner[1] - 1)
 
 
-def getMapLocations(mapWidth, mapHeight):
+def getNonPerimeterLocations(mapWidth, mapHeight):
     '''
     Return a list of all the locations in the map
+    which do not belong to the perimeter wall.
+
+    Assuming the world has a rectangular shape, this
+    method returns all the elements that delimit the 
+    map externally
+
+    e.g.
+        The wall perimeter include this cells:
+        ╔══╦══╦═════════╗                     ╔══╦══╦═════════╗        
+        ║  ║  ╚═══════  ║                     ║  x  xxxxxxxx  ║        
+        ║  ║  ══════════╣                     ║  x  xxxxxxxxxx╣        
+        ╚═══════════════╝                     ╚═══════════════╝        
+             World                      perimeter (x = non-perimeter)
     '''
+    # using the array notation, a cell (x, y) with x = 0
+    # or y = 0 belongs to the perimeter wall, so we start 
+    # from 1. 
     widthArray = range(1, mapWidth + 1)
     heightArray = range(1, mapHeight + 1)
     return [element for element in itertools.product(heightArray, widthArray)]
@@ -657,9 +676,9 @@ def getNonWallLocations(walls, state):
     '''
     Return a list of non-wall locations
     '''
-    width, height = getVisitbaleWidthAndHeight(state)
-    mapLocationsMatrix = getMapLocations(height, width)
-    return [x for x in mapLocationsMatrix if x not in walls]
+    width, height = getVisitableWidthAndHeight(state)
+    nonPerimeterLocations = getNonPerimeterLocations(height, width)
+    return [x for x in nonPerimeterLocations if x not in walls]
 
 
 def getLegalMoves(accessibleMap, location):

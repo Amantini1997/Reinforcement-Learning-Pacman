@@ -36,11 +36,11 @@ To run the Q-Learning Agent execute
 Notice that the agent will require a fair amount of time to train. As such, it is recommended to run it into small worlds such as *smallGrid*.
 
 > E.g. 
-> - training episodes: **33**,
-> - non-training episodes: **11** (this will become 44 = 33 + 11),
+> - training episodes: **500**,
+> - non-training episodes: **10** (this will become 510 = 500 + 10),
 > - world: **smallGrid**
 >
->       python pacman.py -p QLearnAgent -x 33 -n 44 -l smallGrid -q
+>       python pacman.py -p QLearnAgent -x 500 -n 510 -l smallGrid -q
 
 
 <br>

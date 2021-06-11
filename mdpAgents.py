@@ -31,11 +31,7 @@
 from pacman import Directions
 from game import Agent
 import api
-import random
-import game
-import math
 import itertools
-import copy
 
 
 class MDPAgent(Agent):
@@ -66,7 +62,7 @@ class MDPAgent(Agent):
         (1, 0):  [(0, 1), (0, -1)],    # East
         (-1, 0): [(0, 1), (0, -1)],    # West
         (0, 1):  [(1, 0), (-1, 0)],    # North
-        (0, -1): [(1, 0), (-1, 0)]    # South
+        (0, -1): [(1, 0), (-1, 0)]     # South
     }
 
     moveToDirection = {
@@ -98,7 +94,6 @@ class MDPAgent(Agent):
         # includes capsules
         self.food = []
 
-        name = "Pacman"
 
     # Gets run after an MDPAgent object is created and once there is
     # game state to access.
@@ -259,7 +254,8 @@ def findDistanceToClosestGhostWithinAllowedSteps(startingLocation, movesMap, gho
         # find the locations reachable from the current unvisited locations
         reachableLocations = map(lambda location: 
                                 map(lambda move: sumTuples(location, move), movesMap[location]),
-                                unvisitedLocations)
+                                unvisitedLocations
+                             )
 
         # transform this list into a set to remove duplicates
         reachableLocations = { location for locations in reachableLocations for location in locations }
@@ -277,7 +273,7 @@ def findDistanceToClosestGhostWithinAllowedSteps(startingLocation, movesMap, gho
     
     # no ghost has been found within the steps limit
     return NO_GHOST_FOUND
-
+    
 
 def getAdjacentGhostLocationsIfLocationNotOnMap(ghost):
     '''
@@ -303,9 +299,7 @@ def getLocationsDistanceFromStartingLocation(startingLocation, movesMap, limit=f
     the optional parameter "limit", otherwise the whole map is inspected.
     '''
     currentDistance = 0
-
     visitedLocations = { startingLocation: currentDistance }
-
     unvisitedLocations = { startingLocation }
 
     while len(unvisitedLocations) > 0 and currentDistance < limit:
@@ -515,7 +509,6 @@ def bellmanEquation(reward,
         utilities.append(moveUtility)
     
     expectedUtility = max(utilities)
-    
     return reward + discountFactor * expectedUtility
 
 
@@ -559,23 +552,42 @@ def getLocationUtility(startingLocation,
     return valueIterationMap[landingLocation]
 
 
-def getVisitbaleWidthAndHeight(state):
+def getVisitableWidthAndHeight(state):
     '''
     Return a tuple (x, y) of the top-most right-most
-    accessible location in the map.
+    accessible location in the map which can be seen as the 
+    visitable height and width of the map.
+    (This method assumes that the world has a rectangular shape).
     '''
     topRightCorner = max(api.walls(state))
 
-    # the corners belong to the walls, so in a map 4 x 4
+    # corners belong to the walls, so in a map 4 x 4
     # the top right corner is (3, 3), but it's a wall, so the map is
     # 2 x 2 from the agent perspective, so the width is 3 - 1
     return (topRightCorner[0] - 1, topRightCorner[1] - 1)
 
 
-def getMapLocations(mapWidth, mapHeight):
+def getNonPerimeterLocations(mapWidth, mapHeight):
     '''
-    Return a list of all the locations in the map.
+    Return a list of all the locations in the map
+    which do not belong to the perimeter wall.
+
+    Assuming the world has a rectangular shape, this
+    method returns all the elements that delimit the 
+    map externally
+
+    e.g.
+        The wall perimeter include this cells:
+        +---------------+                     +---------------+       
+        |  |            |                     |  x            |        
+        |  |  ----------+                     |  x  xxxxxxxxxx|        
+        |               |                     |               |
+        +---------------+                     +---------------+        
+             World                      perimeter (x = non-perimeter)
     '''
+    # using the array notation, a cell (x, y) with x = 0
+    # or y = 0 belongs to the perimeter wall, so we start 
+    # from 1. 
     widthArray = range(1, mapWidth + 1)
     heightArray = range(1, mapHeight + 1)
     return [element for element in itertools.product(heightArray, widthArray)]
@@ -585,9 +597,9 @@ def getNonWallLocations(walls, state):
     '''
     Return a list of non-wall locations.
     '''
-    width, height = getVisitbaleWidthAndHeight(state)
-    mapLocationsMatrix = getMapLocations(height, width)
-    return [x for x in mapLocationsMatrix if x not in walls]
+    width, height = getVisitableWidthAndHeight(state)
+    nonPerimeterLocations = getNonPerimeterLocations(height, width)
+    return [x for x in nonPerimeterLocations if x not in walls]
 
 
 def getLegalMoves(accessibleMap, location):
